@@ -2,16 +2,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.io.*;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.LinkedList;
+import java.util.Queue;
 
 class ParallellSieve{
 
   private static long global;
-  private static long[] factors;
+  private static long[][] factors;
   private final int n, k;
   private int currentP, counter;
   private ArrayList<Integer> primes;
   private byte[] numbers;
   private long[] primesA;
+  private Queue<Long> queue;
+  private boolean noFactors;
 
   private Thread t;
   private Thread[] threads;
@@ -69,13 +74,12 @@ class ParallellSieve{
       e.printStackTrace();
     }
 
-    counter = 0;
-    for(int i = 0; i < n; i+= 2){
+    counter = 1;
+    for(int i = 3; i < n; i+= 2){
       if(isPrime(i)){
         counter++;
       }
     }
-
     primesA = new long[counter];
     int j = 1;
     primesA[0] = 2;
@@ -107,7 +111,6 @@ class ParallellSieve{
 
       start = end + 1;
       end = start + range;
-
     }
     pw = new PrimeWorker(start, primes.size()-1);
     t = new Thread(pw);
@@ -203,8 +206,10 @@ class ParallellSieve{
       FileWriter writer = new FileWriter(f);
       long ln = n;
 
+
       for(long i = (ln*ln)-100; i < ln*ln; i++){
-        factors = new long[31];
+        noFactors = true;
+        factors = new long[k][31];
         global = i;
         counter = 0;
 
@@ -219,12 +224,9 @@ class ParallellSieve{
           for(Thread s: threads){
             s.join();
           }
-          if(factors[0] == 0){
-            factors[counter] = i;
-          }else if(global >= 1){
-            factors[counter] = global;
+          if(noFactors){
+            factors[0][0] = i;
           }
-          counter++;
         }catch(Exception e){
           e.printStackTrace();
         }
@@ -243,15 +245,18 @@ class ParallellSieve{
   pointer, and a file writer, and writes the factors to the specified file,
   along with the number.
   */
-  public void writeToFile(long[] factors, long product,
-                File f, FileWriter writer){
+  public void writeToFile(long[][] factors, long product, File f, FileWriter writer){
 
+    int j;
     try{
       writer.write("\n" +product+ " : ");
-      for(int i = 0; i < counter-1; i++){
-        writer.write(factors[i] + " * ");
+      for(int i = 0; i < k; i++){
+        j = 0;
+        while(factors[i][j] != 0){
+          writer.write(factors[i][j] + " * ");
+          j++;
+        }
       }
-      writer.write(factors[counter-1] + " ");
 
     }catch(IOException e){
       e.printStackTrace();
@@ -263,14 +268,17 @@ class ParallellSieve{
   private class FactorWorker implements Runnable{
 
     private long local, number, p;
-    private int start;
+    private int start, localCounter;
     private ReentrantLock l;
+    private long[] localFactors;
 
     public FactorWorker(int start, ReentrantLock l, long number){
       this.start = start;
       this.l = l;
       local = global;
       this.number = number;
+      localCounter = 0;
+      localFactors = new long[31];
     }
 
 
@@ -286,15 +294,20 @@ class ParallellSieve{
           break;
         }
 
-        if(local % p == 0){ //Prime is factor
+        while(local % p == 0){
           updateGlobal();
-          i -= k;
-        }else{
-          if(local != global){ //Prime not factor - check if need to update local
-            updateLocal();
-          }
+          factors[start][localCounter] = p;
+          localCounter++;
+        }
+        if(local != global){ //Prime not factor - check if need to update local
+          updateLocal();
         }
       }
+
+      if(start == (k-1) && global > 1){
+        factors[start][localCounter] = global;
+      }
+
     }
 
     public void updateGlobal(){
@@ -302,8 +315,6 @@ class ParallellSieve{
         l.lock();
         global = global / p;
         local = global;
-        factors[counter] = p;
-        counter++;
       }catch(Exception e){
         e.printStackTrace();
 
