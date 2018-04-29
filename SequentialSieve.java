@@ -5,7 +5,6 @@ class SequentialSieve{
 
   private final int n;
   private int counter;
-  private ArrayList<Integer> primes;
   private long[] primesA;
   private byte[] numbers;
 
@@ -24,7 +23,6 @@ class SequentialSieve{
   prime again, and adds the remaining primes up to n.
   */
   public void seqSieve(){
-    primes = new ArrayList<Integer>();
     numbers = new byte[n];
     int currentP;
     counter = 1;
@@ -41,27 +39,8 @@ class SequentialSieve{
 
     }while(currentP < Math.sqrt(n));
 
-    for(int i = 3; i < n; i+= 2){
-      if(isPrime(i)){
-        counter++;
-      }
-    }
-    primesA = new long[counter];
-    counter = 1;
-    primesA[0] = 2;
+    addPrimes();
 
-    for(int i = 3; i < n; i+= 2){
-      if(isPrime(i)){
-        primesA[counter] = i;
-        counter++;
-      }
-    }
-
-
-//    printPrimes();
-
-//    addRemainingPrimes(primes.get(primes.size()-1) + 2);
-//    printPrimes();
 
   }
 
@@ -114,29 +93,24 @@ class SequentialSieve{
   }
 
 
-  /*
-  Starts iterating from the index of the last prime found + 2, searches the
-  byte array for all remaining indexes with bits set to 0, and adds the index
-  to the list of primes.
-  */
-  public void addRemainingPrimes(int start){
-    for(int i = start; i < n; i+= 2){
+  public void addPrimes(){
+    for(int i = 3; i < n; i+= 2){
       if(isPrime(i)){
-        primes.add(i);
         counter++;
       }
     }
-    //primes[i]*primes[i] < num
     primesA = new long[counter];
-    for(int i = 0; i < primes.size(); i++){
-      primesA[i] = primes.get(i);
+    counter = 1;
+    primesA[0] = 2;
+
+    for(int i = 3; i < n; i+= 2){
+      if(isPrime(i)){
+        primesA[counter] = i;
+        counter++;
+      }
     }
-
   }
 
-  public ArrayList<Integer> getPrimes(){
-    return primes;
-  }
 
   public long[] getPrimesA(){
     return primesA;
@@ -151,8 +125,8 @@ class SequentialSieve{
   */
   public void factorise(){
     long product, casting;
-    int j;
-    ArrayList<Long> factors;
+    int j, counter;
+    long[] factors;
 
     try{
       File f = new File("./seq_factors.txt");
@@ -161,28 +135,31 @@ class SequentialSieve{
 
       for(long i = (ln*ln)-100; i < ln*ln; i++){
         product = i;
-        factors = new ArrayList<Long>();
+        factors = new long[31];
         j = 0;
+        counter = 0;
+        y++;
 
         do{
           if(product % primesA[j] == 0){
-            factors.add(primesA[j]);
+            factors[counter] = primesA[j];
+            //factors.add(primesA[j]);
             product /= primesA[j];
           }else{
             j++;
           }
 
           if(j >= primesA.length-1){
-            factors.add(product);
+            factors[counter] = product;
+            counter++;
             break;
           }
         }while((product > 1) && (primesA[j]*primesA[j] < product));
 
         if(product > 1){
-          factors.add(product);
+          factors[counter] = product;
         }
-
-        writeToFile(factors, i, f, fw);
+        writeToFile(factors, product, f, fw);
 
       }
       fw.close();
@@ -198,15 +175,15 @@ class SequentialSieve{
   pointer, and a file writer, and writes the factors to the specified file,
   along with the number.
   */
-  public void writeToFile(ArrayList<Long> factors, long product,
+  public void writeToFile(long[] factors, long product,
                 File f, FileWriter fw){
 
     try{
       fw.write("\n"+product + " : ");
-      for(int i = 0; i < factors.size()-1; i++){
-        fw.write(factors.get(i) + " * ");
+      for(int i = 0; i < factors.length-1; i++){
+        fw.write(factors[i] + " * ");
       }
-      fw.write(factors.get(factors.size()-1) + " ");
+      fw.write(factors[factors.length-1] + " ");
 
     }catch(IOException e){
       e.printStackTrace();
