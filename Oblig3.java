@@ -54,19 +54,19 @@ class Oblig3{
   //Runs each sieve 7 times, prints median time taken, and speedup
   public void timeSieves(){
     //Sequential
-    // for(int i = 0; i < 7; i++){
-    //   t = System.nanoTime();
-    //   ss.seqSieve();
-    //   sTimesP[i] = (System.nanoTime()-t)/1000000.0;
-    //   System.out.printf("%nS time[%d] primes: %.2f ms%n", i, sTimesP[i]);
-    //   t = System.nanoTime();
-    //   ss.factorise();
-    //   sTimesF[i] = (System.nanoTime()-t)/1000000.0;
-    //   System.out.printf("S time[%d] factors: %.2f ms%n", i, sTimesF[i]);
-    // }
-    // Arrays.sort(sTimesP);
-    // System.out.printf("\n--  Sequential median primes:  %.2f ms  --%n", sTimesP[0]);
-    // System.out.printf("--  Sequential median factors: %.2f ms  --%n", sTimesF[0]);
+    for(int i = 0; i < 7; i++){
+      t = System.nanoTime();
+      ss.seqSieve();
+      sTimesP[i] = (System.nanoTime()-t)/1000000.0;
+      System.out.printf("%nS time[%d] primes: %.2f ms%n", i, sTimesP[i]);
+      t = System.nanoTime();
+      ss.factorise();
+      sTimesF[i] = (System.nanoTime()-t)/1000000.0;
+      System.out.printf("S time[%d] factors: %.2f ms%n", i, sTimesF[i]);
+    }
+    Arrays.sort(sTimesP);
+    System.out.printf("\n--  Sequential median primes:  %.2f ms  --%n", sTimesP[0]);
+    System.out.printf("--  Sequential median factors: %.2f ms  --%n", sTimesF[0]);
 
     //Parallell
     for(int i = 0; i < 7; i++){
@@ -91,20 +91,20 @@ class Oblig3{
 
 
   public boolean testSieves(){
-    // long[] ssp = ss.getPrimesA();
-    // long[] psp = ps.getPrimes();
-    //
-    // if(ssp.length != psp.length){
-    //   System.out.println("Different sizes - S: " +ssp.length + " P: " +psp.length);
-    //   return false;
-    // }
-    //
-    // for(int i = 0; i < ssp.length; i++){
-    //   if(ssp[i] != psp[i]){
-    //     System.out.println("Error in primes: " + ssp[i] + " " +psp[i]);
-    //      return false;
-    //   }
-    // }
+    long[] ssp = ss.getPrimesA();
+    long[] psp = ps.getPrimes();
+
+    if(ssp.length != psp.length){
+      System.out.println("Different sizes - S: " +ssp.length + " P: " +psp.length);
+      return false;
+    }
+
+    for(int i = 0; i < ssp.length; i++){
+      if(ssp[i] != psp[i]){
+        System.out.println("Error in primes: " + ssp[i] + " " +psp[i]);
+         return false;
+      }
+    }
     return true;
   }
 
